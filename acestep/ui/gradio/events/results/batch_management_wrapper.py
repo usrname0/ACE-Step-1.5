@@ -50,6 +50,7 @@ def generate_with_batch_management(
     latent_rescale,
     repaint_mode,
     repaint_strength,
+    output_dir,
     autogen_checkbox,
     current_batch_index,
     total_batches,
@@ -83,6 +84,7 @@ def generate_with_batch_management(
         enable_normalization, normalization_db, fade_in_duration, fade_out_duration,
         latent_shift, latent_rescale,
         repaint_mode, repaint_strength,
+        output_dir,
         progress,
     )
 
@@ -154,6 +156,7 @@ def generate_with_batch_management(
         enable_normalization, normalization_db, fade_in_duration, fade_out_duration,
         latent_shift, latent_rescale,
         repaint_mode=repaint_mode, repaint_strength=repaint_strength,
+        output_dir=output_dir,
     )
 
     next_params = saved_params.copy()

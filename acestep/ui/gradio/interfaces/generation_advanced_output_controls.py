@@ -5,6 +5,7 @@ from typing import Any
 import gradio as gr
 
 from acestep.ui.gradio.i18n import t
+from acestep.ui.gradio.events.results.generation_info import DEFAULT_RESULTS_DIR
 
 
 _MP3_BITRATE_CHOICES = [("128 kbps", "128k"), ("192 kbps", "192k"), ("256 kbps", "256k"), ("320 kbps", "320k")]
@@ -42,6 +43,15 @@ def build_output_controls(
     initial_audio_format = params.get("audio_format", "mp3")
     initial_mp3_visible = initial_audio_format == "mp3"
     with gr.Accordion(t("generation.advanced_output_section"), open=False, elem_classes=["has-info-container"]):
+        with gr.Row():
+            output_dir = gr.Textbox(
+                label=t("generation.output_dir_label"),
+                value=params.get("output_dir", DEFAULT_RESULTS_DIR) if service_pre_initialized else DEFAULT_RESULTS_DIR,
+                info=t("generation.output_dir_info"),
+                elem_id="acestep-output-dir",
+                elem_classes=["has-info-container"],
+                interactive=not service_mode,
+            )
         with gr.Row():
             with gr.Column(scale=1):
                 audio_format = gr.Dropdown(
@@ -170,6 +180,7 @@ def build_output_controls(
                 elem_classes=["has-info-container"],
             )
     return {
+        "output_dir": output_dir,
         "audio_format": audio_format,
         "mp3_controls_row": mp3_controls_row,
         "mp3_bitrate": mp3_bitrate,

@@ -113,6 +113,7 @@ def capture_current_params(
     fade_in_duration, fade_out_duration,
     latent_shift, latent_rescale,
     repaint_mode, repaint_strength,
+    output_dir="",
 ):
     """Capture current UI parameters for next-batch generation.
 
@@ -174,6 +175,7 @@ def capture_current_params(
         "latent_rescale": latent_rescale,
         "repaint_mode": repaint_mode,
         "repaint_strength": repaint_strength,
+        "output_dir": output_dir or "",
     }
 
 
@@ -189,7 +191,7 @@ def restore_batch_parameters(current_batch_index, batch_queue):
     """
     if current_batch_index not in batch_queue:
         gr.Warning(t("messages.no_batch_data"))
-        return [gr.update()] * 30
+        return [gr.update()] * 31
 
     batch_data = batch_queue[current_batch_index]
     params = batch_data.get("generation_params", {})
@@ -222,6 +224,7 @@ def restore_batch_parameters(current_batch_index, batch_queue):
     fade_out_duration = params.get("fade_out_duration", 0.0)
     latent_shift = params.get("latent_shift", 0.0)
     latent_rescale = params.get("latent_rescale", 1.0)
+    output_dir = params.get("output_dir", "")
 
     stored_codes = batch_data.get("codes", "")
     is_mp3 = audio_format == "mp3"
@@ -244,4 +247,5 @@ def restore_batch_parameters(current_batch_index, batch_queue):
         enable_normalization, normalization_db,
         fade_in_duration, fade_out_duration,
         latent_shift, latent_rescale,
+        output_dir,
     )

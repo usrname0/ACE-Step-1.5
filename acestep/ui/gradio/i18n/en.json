@@ -258,7 +258,9 @@
     "mp3_bitrate_label": "MP3 Bitrate",
     "mp3_bitrate_info": "MP3 encoding bitrate.",
     "mp3_sample_rate_label": "MP3 Sample Rate",
-    "mp3_sample_rate_info": "MP3 encoding sample rate. Choose 44.1 kHz or 48 kHz."
+    "mp3_sample_rate_info": "MP3 encoding sample rate. Choose 44.1 kHz or 48 kHz.",
+    "output_dir_label": "Output Folder",
+    "output_dir_info": "Folder where generated audio and JSON files are saved. Defaults to gradio_outputs/ inside the project root. Files are saved directly into this folder."
   },
   "results": {
     "title": "🎵 Results",

@@ -126,12 +126,13 @@ def _format_vtt_timestamp(seconds: float) -> str:
     return f"{hours:02d}:{minutes:02d}:{secs:02d}.{millis:03d}"
 
 
-def lrc_to_vtt_file(lrc_text: str, total_duration: float = None) -> Optional[str]:
+def lrc_to_vtt_file(lrc_text: str, total_duration: float = None, output_dir: str = None) -> Optional[str]:
     """Convert LRC text to a VTT subtitle file and return its path.
 
     Args:
         lrc_text: LRC format lyrics string.
         total_duration: Total audio duration in seconds.
+        output_dir: Directory to save the VTT file. Defaults to DEFAULT_RESULTS_DIR.
 
     Returns:
         Path to the generated VTT file, or ``None`` on failure.
@@ -152,7 +153,8 @@ def lrc_to_vtt_file(lrc_text: str, total_duration: float = None) -> Optional[str
         vtt_lines.append("")
 
     try:
-        vtt_output_dir = os.path.join(DEFAULT_RESULTS_DIR, "subtitles")
+        base_dir = output_dir if output_dir and output_dir.strip() else DEFAULT_RESULTS_DIR
+        vtt_output_dir = os.path.join(base_dir, "subtitles")
         os.makedirs(vtt_output_dir, exist_ok=True)
         ts = int(time_module.time())
         vtt_filename = f"subtitles_{ts}_{datetime.datetime.now().strftime('%H%M%S')}.vtt"
