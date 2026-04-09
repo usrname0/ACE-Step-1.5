@@ -266,32 +266,70 @@ if exist "%~dp0python_embedded\python.exe" (
         echo [Setup] Virtual environment not found. Setting up environment...
         echo This will take a few minutes on first run.
         echo.
-        echo Running: uv sync
+        echo Running: uv venv
         echo.
 
-        uv sync
+        uv venv
 
         if !ERRORLEVEL! NEQ 0 (
             echo.
-            echo [Retry] Online sync failed, retrying in offline mode...
+            echo ========================================
+            echo [Error] Failed to create virtual environment
+            echo ========================================
             echo.
-            uv sync --offline
+            pause
+            exit /b 1
+        )
 
-            if !ERRORLEVEL! NEQ 0 (
-                echo.
-                echo ========================================
-                echo [Error] Failed to setup environment
-                echo ========================================
-                echo.
-                echo Both online and offline modes failed.
-                echo Please check:
-                echo   1. Your internet connection ^(required for first-time setup^)
-                echo   2. Ensure you have enough disk space
-                echo   3. Try running: uv sync manually
-                echo.
-                pause
-                exit /b 1
-            )
+        echo.
+        echo Running: uv pip install -r requirements.txt
+        echo ^(This may take several minutes on first run^)
+        echo.
+
+        uv pip install -r requirements.txt
+
+        if !ERRORLEVEL! NEQ 0 (
+            echo.
+            echo ========================================
+            echo [Error] Failed to install dependencies
+            echo ========================================
+            echo.
+            echo Please check your internet connection and try again.
+            echo.
+            pause
+            exit /b 1
+        )
+
+        echo.
+        echo Running: uv pip install -e . --no-deps
+        echo.
+
+        uv pip install -e . --no-deps
+
+        if !ERRORLEVEL! NEQ 0 (
+            echo.
+            echo ========================================
+            echo [Error] Failed to install ACE-Step package
+            echo ========================================
+            echo.
+            pause
+            exit /b 1
+        )
+
+        echo.
+        echo Running: uv pip install -e acestep/third_parts/nano-vllm
+        echo.
+
+        uv pip install -e acestep/third_parts/nano-vllm
+
+        if !ERRORLEVEL! NEQ 0 (
+            echo.
+            echo ========================================
+            echo [Error] Failed to install nano-vllm
+            echo ========================================
+            echo.
+            pause
+            exit /b 1
         )
 
         echo.
@@ -305,7 +343,7 @@ if exist "%~dp0python_embedded\python.exe" (
     echo.
 
     REM Build command with optional parameters
-    set "ACESTEP_ARGS=acestep --port %PORT% --server-name %SERVER_NAME% --language %LANGUAGE%"
+    set "ACESTEP_ARGS=--port %PORT% --server-name %SERVER_NAME% --language %LANGUAGE%"
     if not "%SHARE%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %SHARE%"
     if not "%CONFIG_PATH%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %CONFIG_PATH%"
     if not "%LM_MODEL_PATH%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %LM_MODEL_PATH%"
@@ -319,28 +357,7 @@ if exist "%~dp0python_embedded\python.exe" (
     if not "%AUTH_USERNAME%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %AUTH_USERNAME%"
     if not "%AUTH_PASSWORD%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %AUTH_PASSWORD%"
 
-    uv run !ACESTEP_ARGS!
-    if !ERRORLEVEL! NEQ 0 (
-        echo.
-        echo [Retry] Online dependency resolution failed, retrying in offline mode...
-        echo.
-        uv run --offline !ACESTEP_ARGS!
-        if !ERRORLEVEL! NEQ 0 (
-            echo.
-            echo ========================================
-            echo [Error] Failed to start ACE-Step
-            echo ========================================
-            echo.
-            echo Both online and offline modes failed.
-            echo Please check:
-            echo   1. Your internet connection ^(for first-time setup^)
-            echo   2. If dependencies were previously installed ^(offline mode requires a prior successful install^)
-            echo   3. Try running: uv sync --offline
-            echo.
-            pause
-            exit /b 1
-        )
-    )
+    "%~dp0.venv\Scripts\python.exe" -m acestep.acestep_v15_pipeline !ACESTEP_ARGS!
 )
 
 pause
