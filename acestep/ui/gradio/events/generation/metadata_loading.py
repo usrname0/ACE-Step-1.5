@@ -9,7 +9,61 @@ import json
 import random
 import glob
 import gradio as gr
+from loguru import logger
 from typing import Optional
+
+_AUDIO_EXTENSIONS = {".flac", ".mp3", ".opus", ".ogg", ".m4a", ".aac", ".wav"}
+
+
+def _extract_params_from_audio(filepath: str) -> dict:
+    """Read embedded generation parameters from an audio file's metadata tag.
+
+    Returns the parsed params dict, or raises on failure.
+    """
+    import mutagen
+    ext = os.path.splitext(filepath)[1].lower()
+
+    if ext == ".flac":
+        from mutagen.flac import FLAC
+        audio = FLAC(filepath)
+        comment = audio.get("comment", [""])[0]
+
+    elif ext == ".mp3":
+        from mutagen.id3 import ID3
+        tags = ID3(filepath)
+        txxx = tags.get("TXXX:parameters")
+        comment = txxx.text[0] if txxx else ""
+
+    elif ext in (".opus", ".ogg"):
+        try:
+            from mutagen.oggopus import OggOpus
+            audio = OggOpus(filepath)
+        except Exception:
+            from mutagen.oggvorbis import OggVorbis
+            audio = OggVorbis(filepath)
+        comment = audio.get("comment", [""])[0]
+
+    elif ext in (".m4a", ".aac"):
+        from mutagen.mp4 import MP4
+        audio = MP4(filepath)
+        comment = audio.get("\xa9cmt", [""])[0]
+
+    elif ext == ".wav":
+        from mutagen.wave import WAVE
+        audio = WAVE(filepath)
+        if audio.tags:
+            txxx = audio.tags.get("TXXX:parameters")
+            comment = txxx.text[0] if txxx else ""
+        else:
+            comment = ""
+
+    else:
+        raise ValueError(f"Unsupported audio format for metadata: {ext}")
+
+    if not comment or not comment.strip():
+        raise ValueError("No embedded parameters found in this audio file")
+
+    return json.loads(comment)
 
 from acestep.ui.gradio.i18n import t
 from acestep.gpu_config import get_global_gpu_config
@@ -26,7 +80,7 @@ def load_metadata(file_obj, llm_handler=None):
     """
     if file_obj is None:
         gr.Warning(t("messages.no_file_selected"))
-        return [None] * 40 + [False]
+        return [None] * 54 + [False]
 
     try:
         if hasattr(file_obj, 'name'):
@@ -34,8 +88,19 @@ def load_metadata(file_obj, llm_handler=None):
         else:
             filepath = file_obj
 
-        with open(filepath, 'r', encoding='utf-8') as f:
-            metadata = json.load(f)
+        ext = os.path.splitext(filepath)[1].lower()
+        if ext in _AUDIO_EXTENSIONS:
+            try:
+                metadata = _extract_params_from_audio(filepath)
+            except ImportError:
+                gr.Warning("mutagen is not installed — cannot read embedded audio metadata")
+                return [None] * 54 + [False]
+            except ValueError as e:
+                gr.Warning(str(e))
+                return [None] * 54 + [False]
+        else:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                metadata = json.load(f)
 
         task_type = metadata.get('task_type', 'text2music')
         captions = metadata.get('caption', '')
@@ -115,9 +180,60 @@ def load_metadata(file_obj, llm_handler=None):
         custom_timesteps = metadata.get('timesteps', '')
         if custom_timesteps is None:
             custom_timesteps = ''
+        elif isinstance(custom_timesteps, (list, tuple)):
+            custom_timesteps = ','.join(str(v) for v in custom_timesteps)
         instrumental = metadata.get('instrumental', False)
 
+        # DiT diffusion settings
+        sampler_mode = metadata.get('sampler_mode', 'euler')
+        if sampler_mode not in {'euler', 'heun'}:
+            sampler_mode = 'euler'
+        velocity_norm_threshold = float(metadata.get('velocity_norm_threshold', 0.0))
+        velocity_ema_factor = float(metadata.get('velocity_ema_factor', 0.0))
+
+        # Audio output / post-processing settings
+        enable_normalization = bool(metadata.get('enable_normalization', True))
+        normalization_db = float(metadata.get('normalization_db', -1.0))
+        fade_in_duration = float(metadata.get('fade_in_duration', 0.0))
+        fade_out_duration = float(metadata.get('fade_out_duration', 0.0))
+        latent_shift = float(metadata.get('latent_shift', 0.0))
+        latent_rescale = float(metadata.get('latent_rescale', 1.0))
+
+        # Repaint settings
+        repaint_mode = metadata.get('repaint_mode', 'balanced')
+        if repaint_mode not in {'conservative', 'balanced', 'aggressive'}:
+            repaint_mode = 'balanced'
+        repaint_strength = float(metadata.get('repaint_strength', 0.5))
+
+        # Service configuration settings — use gr.update() no-op when absent
+        # so missing keys (old JSONs) or empty values don't clear the dropdowns.
+        _mc = metadata.get('model_checkpoint') or None
+        model_checkpoint_update = gr.update(value=_mc) if _mc else gr.update()
+        _lm = metadata.get('lm_model') or None
+        lm_model_update = gr.update(value=_lm) if _lm else gr.update()
+        _lp = metadata.get('lora_path') or None
+        lora_path_update = gr.update(value=_lp) if _lp else gr.update()
+
         is_mp3 = audio_format == "mp3"
+
+        logger.info(
+            "[load_metadata] Loaded from: {}\n"
+            "  task:       {}\n"
+            "  caption:    {}\n"
+            "  lyrics:     {}\n"
+            "  bpm:        {}  key: {}  time_sig: {}  lang: {}\n"
+            "  duration:   {}s  steps: {}  seed: {}  think: {}\n"
+            "  model:      {}  lm: {}  lora: {}",
+            os.path.basename(filepath),
+            task_type,
+            (captions[:80] + "…") if captions and len(captions) > 80 else captions,
+            (lyrics[:80] + "…") if lyrics and len(lyrics) > 80 else lyrics,
+            bpm, key_scale, time_signature, vocal_language,
+            audio_duration, inference_steps, seed, think,
+            metadata.get("model_checkpoint") or "—",
+            metadata.get("lm_model") or "—",
+            metadata.get("lora_path") or "—",
+        )
 
         gr.Info(t("messages.params_loaded", filename=os.path.basename(filepath)))
 
@@ -136,15 +252,21 @@ def load_metadata(file_obj, llm_handler=None):
             use_cot_metas, use_cot_caption, use_cot_language, audio_cover_strength,
             cover_noise_strength, think, audio_codes, repainting_start, repainting_end,
             track_name, complete_track_classes, instrumental,
+            sampler_mode, velocity_norm_threshold, velocity_ema_factor,
+            enable_normalization, normalization_db,
+            fade_in_duration, fade_out_duration,
+            latent_shift, latent_rescale,
+            repaint_mode, repaint_strength,
+            model_checkpoint_update, lm_model_update, lora_path_update,
             True  # is_format_caption
         )
 
     except json.JSONDecodeError as e:
         gr.Warning(t("messages.invalid_json", error=str(e)))
-        return [None] * 40 + [False]
+        return [None] * 54 + [False]
     except Exception as e:
         gr.Warning(t("messages.load_error", error=str(e)))
-        return [None] * 40 + [False]
+        return [None] * 54 + [False]
 
 
 def _get_project_root() -> str:

@@ -110,6 +110,7 @@ def generate_next_batch_background(
             auto_lrc=params.get("auto_lrc"),
             score_scale=params.get("score_scale"),
             lm_batch_chunk_size=params.get("lm_batch_chunk_size"),
+            save_json=params.get("save_json", True),
             enable_normalization=params.get("enable_normalization"),
             normalization_db=params.get("normalization_db"),
             fade_in_duration=params.get("fade_in_duration", 0.0),

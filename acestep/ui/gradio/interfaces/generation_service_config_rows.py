@@ -119,7 +119,7 @@ def build_model_device_controls(
         config_path = gr.Dropdown(
             label=t("service.model_path_label"),
             choices=available_models,
-            value=params.get("config_path", default_model) if service_pre_initialized else default_model,
+            value=params.get("config_path", default_model) if service_pre_initialized else default_model,  
             info=t("service.model_path_info"),
             elem_classes=["has-info-container"],
         )

@@ -33,7 +33,7 @@ def build_mode_selector_controls(initial_mode_choices: list[str]) -> dict[str, A
         with gr.Column(scale=1, min_width=80, elem_classes="icon-btn-wrap") as load_file_col:
             load_file = gr.UploadButton(
                 t("generation.load_btn"),
-                file_types=[".json"],
+                file_types=[".json", ".flac", ".mp3", ".opus", ".ogg", ".m4a", ".aac", ".wav"],
                 file_count="single",
                 variant="secondary",
                 size="lg",

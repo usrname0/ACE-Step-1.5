@@ -14,7 +14,7 @@ import torch
 from loguru import logger
 
 from acestep.inference import generate_music, GenerationParams, GenerationConfig
-from acestep.audio_utils import save_audio
+from acestep.audio_utils import save_audio, embed_metadata_in_audio
 from acestep.gpu_config import (
     get_global_gpu_config,
     check_duration_limit,
@@ -51,6 +51,7 @@ def generate_with_progress(
     auto_lrc,
     score_scale,
     lm_batch_chunk_size,
+    save_json,
     enable_normalization,
     normalization_db,
     fade_in_duration,
@@ -265,12 +266,16 @@ def generate_with_progress(
         if saved_path:
             audio_path = saved_path.replace("\\", "/")
 
-        with open(json_path, 'w', encoding='utf-8') as f:
-            json.dump(audio_params, f, indent=2, ensure_ascii=False)
+        embed_metadata_in_audio(audio_path, audio_params)
+
+        if save_json:
+            with open(json_path, 'w', encoding='utf-8') as f:
+                json.dump(audio_params, f, indent=2, ensure_ascii=False)
 
         audio_outputs[i] = audio_path
         all_audio_paths.append(audio_path)
-        all_audio_paths.append(json_path)
+        if save_json:
+            all_audio_paths.append(json_path)
 
         code_str = audio_params.get("audio_codes", "")
         final_codes_list[i] = code_str

@@ -59,6 +59,7 @@ class LLMHandler:
         self.llm_tokenizer = None
         self.llm_initialized = False
         self.llm_backend = None
+        self.model_name = ""
         self.max_model_len = 4096
         self.device = "cpu"
         self.dtype = torch.float32
@@ -396,6 +397,7 @@ class LLMHandler:
             self.llm.eval()
             self.llm_backend = "pt"
             self.llm_initialized = True
+            self.model_name = model_path
             logger.info(f"5Hz LM initialized successfully using PyTorch backend on {device}")
             status_msg = f"✅ 5Hz LM initialized successfully\nModel: {model_path}\nBackend: PyTorch\nDevice: {device}"
             return True, status_msg
@@ -832,6 +834,7 @@ class LLMHandler:
                 logger.info(f"5Hz LM initialized successfully in {time.time() - start_time:.2f} seconds")
                 self.llm_initialized = True
                 self.llm_backend = "vllm"
+                self.model_name = model_path
                 return f"✅ 5Hz LM initialized successfully\nModel: {model_path}\nDevice: {device_name}\nGPU Memory Utilization: {gpu_memory_utilization:.3f}\nLow GPU Memory Mode: {low_gpu_memory_mode}"
             finally:
                 if _dynamo_state_saved:
@@ -2958,6 +2961,7 @@ class LLMHandler:
 
             self.llm_backend = "mlx"
             self.llm_initialized = True
+            self.model_name = model_path
             status_msg = (
                 f"✅ 5Hz LM initialized successfully\n"
                 f"Model: {model_path}\n"

@@ -6,6 +6,7 @@ designed for third-party integration. It offers both a simplified API and
 backward-compatible Gradio UI support.
 """
 
+import datetime
 import math
 import inspect
 import os
@@ -718,6 +719,14 @@ def generate_music(
             audio_params["lora_scale"] = dit_handler.lora_scale
             audio_params["lora_weights_hash"] = get_lora_weights_hash(dit_handler)
             audio_params["audio_format"] = audio_format
+            # Reproducibility fields
+            audio_params["batch_size"] = config.batch_size
+            audio_params["model_checkpoint"] = (dit_handler.last_init_params or {}).get("config_path", "")
+            audio_params["lm_model"] = getattr(llm_handler, "model_name", "") if llm_handler else ""
+            _active_lora = getattr(dit_handler, "_lora_active_adapter", None)
+            _lora_registry = getattr(dit_handler, "_lora_adapter_registry", {})
+            audio_params["lora_path"] = _lora_registry.get(_active_lora, {}).get("path", "") if _active_lora else ""
+            audio_params["generation_timestamp"] = datetime.datetime.now().isoformat()
             if audio_format == "mp3":
                 audio_params["mp3_bitrate"] = getattr(config, "mp3_bitrate", "128k")
                 audio_params["mp3_sample_rate"] = getattr(config, "mp3_sample_rate", 48000)

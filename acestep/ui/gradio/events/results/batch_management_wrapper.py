@@ -42,6 +42,7 @@ def generate_with_batch_management(
     lm_batch_chunk_size,
     track_name,
     complete_track_classes,
+    save_json,
     enable_normalization,
     normalization_db,
     fade_in_duration,
@@ -81,6 +82,7 @@ def generate_with_batch_management(
         constrained_decoding_debug,
         allow_lm_batch, auto_score, auto_lrc, score_scale,
         lm_batch_chunk_size,
+        save_json,
         enable_normalization, normalization_db, fade_in_duration, fade_out_duration,
         latent_shift, latent_rescale,
         repaint_mode, repaint_strength,
@@ -155,6 +157,7 @@ def generate_with_batch_management(
         track_name, complete_track_classes,
         enable_normalization, normalization_db, fade_in_duration, fade_out_duration,
         latent_shift, latent_rescale,
+        save_json=save_json,
         repaint_mode=repaint_mode, repaint_strength=repaint_strength,
         output_dir=output_dir,
     )

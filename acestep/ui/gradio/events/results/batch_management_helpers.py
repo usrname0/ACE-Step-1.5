@@ -33,6 +33,7 @@ def _build_saved_params(
     track_name, complete_track_classes,
     enable_normalization, normalization_db, fade_in_duration, fade_out_duration,
     latent_shift, latent_rescale,
+    save_json=True,
     repaint_mode="balanced", repaint_strength=0.5,
     output_dir=None,
 ):
@@ -76,6 +77,7 @@ def _build_saved_params(
         "fade_in_duration": fade_in_duration,
         "fade_out_duration": fade_out_duration,
         "latent_shift": latent_shift, "latent_rescale": latent_rescale,
+        "save_json": save_json,
         "repaint_mode": repaint_mode, "repaint_strength": repaint_strength,
         "output_dir": output_dir or "",
     }
@@ -133,6 +135,7 @@ def _apply_param_defaults(params):
         "enable_normalization": True, "normalization_db": -1.0,
         "fade_in_duration": 0.0, "fade_out_duration": 0.0,
         "latent_shift": 0.0, "latent_rescale": 1.0,
+        "save_json": True,
         "repaint_mode": "balanced", "repaint_strength": 0.5,
         "output_dir": "",
     }

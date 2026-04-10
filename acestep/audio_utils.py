@@ -617,3 +617,79 @@ def save_audio(
         mp3_sample_rate,
     )
 
+
+def embed_metadata_in_audio(path: str, params_dict: dict) -> None:
+    """Embed generation parameters as JSON into audio file metadata.
+
+    Stores the full params dict as a JSON string in the file's comment/description
+    tag, so the file is self-contained and settings can be reloaded later.
+
+    Supports FLAC, MP3, Opus, OGG, WAV, and AAC/M4A. Silently skips on import
+    error (mutagen not installed) or unsupported format.
+
+    Args:
+        path: Path to the saved audio file.
+        params_dict: Generation parameters dictionary to embed.
+    """
+    try:
+        import mutagen
+    except ImportError:
+        logger.debug("[embed_metadata] mutagen not installed — skipping metadata embedding")
+        return
+
+    try:
+        import json
+        json_str = json.dumps(params_dict, ensure_ascii=False, separators=(',', ':'))
+        ext = os.path.splitext(path)[1].lower()
+
+        if ext == ".flac":
+            from mutagen.flac import FLAC
+            audio = FLAC(path)
+            audio["comment"] = [json_str]
+            audio.save()
+
+        elif ext == ".mp3":
+            from mutagen.id3 import ID3, TXXX
+            try:
+                tags = ID3(path)
+            except mutagen.id3.ID3NoHeaderError:
+                tags = ID3()
+            tags.delall("TXXX:parameters")
+            tags.add(TXXX(encoding=3, desc="parameters", text=json_str))
+            tags.save(path)
+
+        elif ext in (".opus", ".ogg"):
+            try:
+                from mutagen.oggopus import OggOpus
+                audio = OggOpus(path)
+            except Exception:
+                from mutagen.oggvorbis import OggVorbis
+                audio = OggVorbis(path)
+            audio["comment"] = [json_str]
+            audio.save()
+
+        elif ext in (".m4a", ".aac"):
+            from mutagen.mp4 import MP4
+            audio = MP4(path)
+            audio["\xa9cmt"] = [json_str]
+            audio.save()
+
+        elif ext == ".wav":
+            from mutagen.wave import WAVE
+            from mutagen.id3 import TXXX
+            try:
+                audio = WAVE(path)
+                if audio.tags is None:
+                    audio.add_tags()
+                audio.tags.delall("TXXX:parameters")
+                audio.tags.add(TXXX(encoding=3, desc="parameters", text=json_str))
+                audio.save()
+            except Exception as e:
+                logger.debug(f"[embed_metadata] WAV tag write skipped: {e}")
+
+        else:
+            logger.debug(f"[embed_metadata] Unsupported format for embedding: {ext}")
+
+    except Exception as e:
+        logger.warning(f"[embed_metadata] Failed to embed metadata in {path}: {e}")
+

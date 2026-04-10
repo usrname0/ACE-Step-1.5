@@ -47,6 +47,20 @@ _LOAD_METADATA_GENERATION_OUTPUT_KEYS = (
     "track_name",
     "complete_track_classes",
     "instrumental_checkbox",
+    "sampler_mode",
+    "velocity_norm_threshold",
+    "velocity_ema_factor",
+    "enable_normalization",
+    "normalization_db",
+    "fade_in_duration",
+    "fade_out_duration",
+    "latent_shift",
+    "latent_rescale",
+    "repaint_mode",
+    "repaint_strength",
+    "config_path",
+    "lm_model_path",
+    "lora_path",
 )
 
 

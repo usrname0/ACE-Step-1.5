@@ -51,7 +51,9 @@ def build_output_controls(
                 elem_id="acestep-output-dir",
                 elem_classes=["has-info-container"],
                 interactive=not service_mode,
+                scale=1,
             )
+
         with gr.Row():
             with gr.Column(scale=1):
                 audio_format = gr.Dropdown(
@@ -120,6 +122,13 @@ def build_output_controls(
             outputs=[mp3_controls_row, mp3_bitrate, mp3_sample_rate],
         )
         with gr.Row():
+            save_json = gr.Checkbox(
+                label=t("generation.save_json"),
+                value=params.get("save_json", True),
+                info=t("generation.save_json_info"),
+                elem_id="acestep-save-json",
+                elem_classes=["has-info-container"],
+            )
             enable_normalization = gr.Checkbox(
                 label=t("generation.enable_normalization"),
                 value=params.get("enable_normalization", True) if service_pre_initialized else True,
@@ -186,6 +195,7 @@ def build_output_controls(
         "mp3_bitrate": mp3_bitrate,
         "mp3_sample_rate": mp3_sample_rate,
         "score_scale": score_scale,
+        "save_json": save_json,
         "enable_normalization": enable_normalization,
         "normalization_db": normalization_db,
         "fade_in_duration": fade_in_duration,
