@@ -40,7 +40,7 @@ def build_output_controls(
     """
 
     params = init_params or {}
-    initial_audio_format = params.get("audio_format", "mp3")
+    initial_audio_format = params.get("audio_format", "flac")
     initial_mp3_visible = initial_audio_format == "mp3"
     with gr.Accordion(t("generation.advanced_output_section"), open=False, elem_classes=["has-info-container"]):
         with gr.Row():
@@ -124,7 +124,7 @@ def build_output_controls(
         with gr.Row():
             save_json = gr.Checkbox(
                 label=t("generation.save_json"),
-                value=params.get("save_json", True),
+                value=params.get("save_json", False),
                 info=t("generation.save_json_info"),
                 elem_id="acestep-save-json",
                 elem_classes=["has-info-container"],
@@ -141,7 +141,7 @@ def build_output_controls(
                 minimum=-10.0,
                 maximum=0.0,
                 step=0.1,
-                value=params.get("normalization_db", -1.0) if service_pre_initialized else -1.0,
+                value=params.get("normalization_db", -0.1) if service_pre_initialized else -0.1,
                 info=t("generation.normalization_db_info"),
                 elem_id="acestep-normalization-db",
                 elem_classes=["has-info-container"],

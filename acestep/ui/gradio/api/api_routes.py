@@ -16,8 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 # Global results directory inside project root
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DEFAULT_RESULTS_DIR = os.path.join(PROJECT_ROOT, "gradio_outputs").replace("\\", "/")
+DEFAULT_RESULTS_DIR = "D:/AllergicToTeeth/_music/_RAW"
 os.makedirs(DEFAULT_RESULTS_DIR, exist_ok=True)
 
 # API Key storage (set via setup_api_routes)

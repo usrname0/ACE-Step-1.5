@@ -197,8 +197,7 @@ def main():
         print("No GPU detected, running on CPU")
 
     # Define local outputs directory
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    output_dir = os.path.join(project_root, "gradio_outputs")
+    output_dir = "D:/AllergicToTeeth/_music/_RAW"
     # Normalize path to use forward slashes for Gradio 6 compatibility on Windows
     output_dir = output_dir.replace("\\", "/")
     os.makedirs(output_dir, exist_ok=True)
