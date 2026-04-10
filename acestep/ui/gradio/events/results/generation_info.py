@@ -14,6 +14,10 @@ IS_WINDOWS = sys.platform == "win32"
 
 # Global results directory inside project root
 # This file is in acestep/ui/gradio/events/results/, need 6 levels up to project root
+PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__))))))
+)
 DEFAULT_RESULTS_DIR = "D:/AllergicToTeeth/_music/_RAW"
 os.makedirs(DEFAULT_RESULTS_DIR, exist_ok=True)
 
